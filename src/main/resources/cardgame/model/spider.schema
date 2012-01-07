@@ -1,0 +1,176 @@
+schema {
+  title Spider
+  minSize 320 240
+  preferredSize 800 600
+  
+  cards spades 13-cards
+  cards spades 13-cards
+  cards spades 13-cards
+  cards spades 13-cards
+  cards spades 13-cards
+  cards spades 13-cards
+  cards spades 13-cards
+  card spades A
+  card spades 2
+  card spades 3
+  card spades 4
+  card spades 5
+  card spades 6
+  card spades 7
+  card spades 8
+  card spades 9
+  card spades 10
+  card spades J
+  card spades Q
+  card spades K
+
+  pile stock squared 9.9 5.0
+  pile tableau0 fanned-down 0.0 0.0
+  pile tableau1 fanned-down 1.1 0.0
+  pile tableau2 fanned-down 2.2 0.0
+  pile tableau3 fanned-down 3.3 0.0
+  pile tableau4 fanned-down 4.4 0.0
+  pile tableau5 fanned-down 5.5 0.0
+  pile tableau6 fanned-down 6.6 0.0
+  pile tableau7 fanned-down 7.7 0.0
+  pile tableau8 fanned-down 8.8 0.0
+  pile tableau9 fanned-down 9.9 0.0
+  pile foundation0 squared 0.0 5.0
+  pile foundation1 squared 1.1 5.0
+  pile foundation2 squared 2.2 5.0
+  pile foundation3 squared 3.3 5.0
+  pile foundation4 squared 4.4 5.0
+  pile foundation5 squared 5.5 5.0
+  pile foundation6 squared 6.6 5.0
+  pile foundation7 squared 7.7 5.0
+  
+  tag tableau tableau0
+  tag tableau tableau1
+  tag tableau tableau2
+  tag tableau tableau3
+  tag tableau tableau4
+  tag tableau tableau5
+  tag tableau tableau6
+  tag tableau tableau7
+  tag tableau tableau8
+  tag tableau tableau9
+  tag foundations foundation0
+  tag foundations foundation1
+  tag foundations foundation2
+  tag foundations foundation3
+  tag foundations foundation4
+  tag foundations foundation5
+  tag foundations foundation6
+  tag foundations foundation7
+
+  goal standard {
+    (true-for-all n tags.foundations (not (empty n)))
+  }
+  
+  action move {
+    param source {
+      restriction {
+        (or
+          (and
+            (is candidate (type [card]))
+            candidate.revealed
+            (contains tags.tableau candidate.pile)
+          )
+          (and
+            (is candidate (type [cell]))
+            (contains tags.tableau candidate.pile)
+          )
+        )
+      }
+    }
+    param destination {
+      restriction {
+        (and candidate.revealed (contains tags.tableau candidate.pile))
+      }
+    }
+    condition {
+      (and
+        (not (eq source destination))
+        (true-for-all n source.tails (or (eq n.next null) (seq n.next n)))
+      )
+    }
+    effect {
+      (with source-pile source.tails
+        (with destination-pile destination.pile
+          (while (not (empty source-pile)) (push (pop source-pile) destination-pile))
+        )
+      )
+    }
+  }
+  action feed {
+    param source {
+      restriction {
+        (and (eq candidate.pile stock) (eq candidate.next null))
+      }
+    }
+    condition {
+      (true-for-all n tags.tableau (not (empty n)))
+    }
+    effect {
+      (iterate n tags.tableau (push (pop stock) n))
+    }
+  }
+  action solve {
+    param source {
+      restriction {
+        (and
+          (is candidate (type [card]))
+          candidate.revealed
+          (contains tags.tableau candidate.pile)
+        )
+      }
+    }
+    param destination {
+      restriction {
+        (and
+          (is candidate (type [cell]))
+          (contains tags.foundations candidate.pile)
+        )
+      }
+    }
+    condition {
+      (and
+        (empty destination.pile)
+        (matches prev next
+          source.posterior
+          (or
+            (and
+              (eq prev null)
+              (eq next.value [king])
+            )
+            (and
+              (eq prev.value [ace])
+              (eq next null)
+            )
+            (seq next prev)
+          )
+        )
+      )
+    }
+    effect {
+      (with work (new (type [stack]))
+        (program
+          (while (not (eq source (peek work))) (push (pop source.pile) work))
+          (while (not (empty work)) (push (pop work) destination.pile))
+        )
+      )
+    }
+  }
+  
+  init {
+    (with work (new stack)
+      (program
+        (iterate n cards (push n work))
+        (shuffle work)
+        (iterate n tags.tableau (repeat 5 (push (pop work) n)))
+        (iterate n (join tableau0 tableau1 tableau2 tableau3) (push (pop work) n))
+        (while (not (empty work)) (push (pop work) stock))
+      )
+    )
+  }
+}
