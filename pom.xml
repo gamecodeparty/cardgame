@@ -13,37 +13,72 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-<!--		<encoding>UTF-8</encoding>-->
-<!--		<sourceVersion>1.6</sourceVersion>-->
+    <mainClass>cardgame.DebugApplication</mainClass>
   </properties>
   
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
-				<configuration>
-<!--					<encoding>${encoding}</encoding>-->
-					<source>${sourceVersion}</source>
-					<target>${sourceVersion}</target>
-				</configuration>
-			</plugin>
-<!--			<plugin>-->
-<!--				<artifactId>maven-resources-plugin</artifactId>-->
-<!--        <version>2.4.3</version>-->
-<!--				<configuration>-->
-<!--					<encoding>${encoding}</encoding>-->
-<!--				</configuration>-->
-<!--			</plugin>-->
-<!--      <plugin>-->
-<!--        <artifactId>maven-site-plugin</artifactId>-->
-<!--        <configuration>-->
-<!--          <outputEncoding>${encoding}</outputEncoding>-->
-<!--          <locales>en,pt_br</locales>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
+        <configuration>
+          <source>${sourceVersion}</source>
+          <target>${sourceVersion}</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>${mainClass}</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2.2</version>
+        <executions>
+          <execution>
+            <id>bundle-project-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/package.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>${mainClass}</mainClass>
+          <argument>-classpath</argument>
+          <classpath/>
+        </configuration>
+      </plugin>
     </plugins>
-	</build>
+  </build>
   
   <dependencies>
     <dependency>
